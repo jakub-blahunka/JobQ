@@ -24,3 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "JobQ"
 include(":app")
+
+include(":llama")
