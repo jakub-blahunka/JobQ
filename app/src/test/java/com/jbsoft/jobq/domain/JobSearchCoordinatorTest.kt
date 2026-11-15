@@ -98,7 +98,8 @@ class JobSearchCoordinatorTest {
 	private class FakeCv(var document: CvDocument?) : CvRepository {
 		override fun observe(): Flow<CvDocument?> = flowOf(document)
 		override suspend fun current() = document
-		override suspend fun save(document: CvDocument) { this.document = document }
+		override suspend fun import(document: CvDocument, pdf: ByteArray) { this.document = document }
+		override suspend fun update(document: CvDocument) { this.document = document }
 		override suspend fun clear() { document = null }
 	}
 

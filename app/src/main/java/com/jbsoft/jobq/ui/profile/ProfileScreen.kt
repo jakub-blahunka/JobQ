@@ -51,12 +51,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 data class ProfileUiState(val document: CvDocument?, val import: CvImportState)
 
-class ProfileViewModel(private val repository: CvRepository, private val importer: CvImporter) : ViewModel() {
+class ProfileViewModel(repository: CvRepository, private val importer: CvImporter) : ViewModel() {
 	/** Null while loading. */
 	val state: StateFlow<ProfileUiState?> = combine(repository.observe(), importer.state, ::ProfileUiState)
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -64,10 +63,7 @@ class ProfileViewModel(private val repository: CvRepository, private val importe
 	fun import(uri: String) = importer.import(uri)
 	fun reanalyze() = importer.reanalyze()
 
-	fun remove() {
-		importer.dismissError()
-		viewModelScope.launch { repository.clear() }
-	}
+	fun remove() = importer.remove()
 }
 
 @Composable
@@ -150,6 +146,7 @@ private fun ImportStatus(state: CvImportState, onOpenModels: () -> Unit) {
 							CvFailure.NoText -> R.string.cv_failed_no_text
 							CvFailure.NoModel -> R.string.cv_failed_no_model
 							CvFailure.AnalysisFailed -> R.string.cv_failed_analysis
+							CvFailure.StorageFailed -> R.string.cv_failed_storage
 						}
 					),
 					style = MaterialTheme.typography.bodyLarge,

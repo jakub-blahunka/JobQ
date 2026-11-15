@@ -10,6 +10,9 @@ import androidx.room3.Transaction
 import androidx.room3.ColumnTypeConverter
 import androidx.room3.ColumnTypeConverters
 import androidx.room3.Upsert
+import androidx.room3.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 
@@ -93,21 +96,6 @@ interface JobDao {
 	suspend fun markFetched(fetch: SourceFetchEntity)
 }
 
-@Dao
-interface CvDao {
-	@Query("SELECT * FROM cv WHERE id = 0")
-	fun observe(): Flow<CvEntity?>
-
-	@Query("SELECT * FROM cv WHERE id = 0")
-	suspend fun get(): CvEntity?
-
-	@Upsert
-	suspend fun upsert(cv: CvEntity)
-
-	@Query("DELETE FROM cv")
-	suspend fun clear()
-}
-
 class Converters {
 	@ColumnTypeConverter
 	fun fromList(value: List<String>): String = Json.encodeToString(value)
@@ -117,12 +105,22 @@ class Converters {
 }
 
 @Database(
-	entities = [JobEntity::class, SearchEntity::class, MatchEntity::class, CvEntity::class, SourceFetchEntity::class],
-	version = 1,
+	entities = [JobEntity::class, SearchEntity::class, MatchEntity::class, SourceFetchEntity::class],
+	version = 2,
 	exportSchema = false,
 )
 @ColumnTypeConverters(Converters::class)
 abstract class JobQDatabase : RoomDatabase() {
 	abstract fun jobDao(): JobDao
-	abstract fun cvDao(): CvDao
+
+	companion object {
+		/** Version 1 kept the CV in a table. It now lives in encrypted files; see FileCvRepository. */
+		val MIGRATION_1_2 = object : Migration(1, 2) {
+			override suspend fun migrate(connection: SQLiteConnection) {
+				// Zero the freed pages, so the CV text does not linger in the database file.
+				connection.execSQL("PRAGMA secure_delete = ON")
+				connection.execSQL("DROP TABLE IF EXISTS cv")
+			}
+		}
+	}
 }

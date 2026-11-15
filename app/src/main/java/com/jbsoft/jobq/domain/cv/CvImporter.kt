@@ -27,6 +27,8 @@ enum class CvFailure {
 	NoText,
 	NoModel,
 	AnalysisFailed,
+	/** The CV could not be written to, or removed from, the app's storage. */
+	StorageFailed,
 }
 
 /** Imports a CV and analyses it with the local model. Runs in [scope] so it survives navigation. */
@@ -56,7 +58,12 @@ class CvImporter(
 		}
 		// Keep the text even if analysis fails, so it can be retried without re-importing.
 		val document = CvDocument(extracted.fileName, extracted.text, profile = null, importedAtMillis = now())
-		repository.save(document)
+		try {
+			repository.import(document, extracted.pdf)
+		} catch (e: IOException) {
+			_state.value = CvImportState.Failed(CvFailure.StorageFailed)
+			return@launch
+		}
 		analyze(document)
 	}
 
@@ -65,19 +72,30 @@ class CvImporter(
 		repository.current()?.let { analyze(it) }
 	}
 
-	fun dismissError() {
-		if (_state.value is CvImportState.Failed) _state.value = CvImportState.Idle
+	/**
+	 * Deletes the CV. Goes through here rather than straight to the repository so that an
+	 * analysis still running is cancelled first and cannot write the CV back afterwards.
+	 */
+	fun remove() = launch {
+		_state.value = try {
+			repository.clear()
+			CvImportState.Idle
+		} catch (e: IOException) {
+			CvImportState.Failed(CvFailure.StorageFailed)
+		}
 	}
 
 	private suspend fun analyze(document: CvDocument) {
 		_state.value = CvImportState.Analyzing
 		_state.value = try {
-			repository.save(document.copy(profile = analyzer.analyze(document.text)))
+			repository.update(document.copy(profile = analyzer.analyze(document.text)))
 			CvImportState.Idle
 		} catch (e: LlmException.NoModel) {
 			CvImportState.Failed(CvFailure.NoModel)
 		} catch (e: LlmException) {
 			CvImportState.Failed(CvFailure.AnalysisFailed)
+		} catch (e: IOException) {
+			CvImportState.Failed(CvFailure.StorageFailed)
 		}
 	}
 

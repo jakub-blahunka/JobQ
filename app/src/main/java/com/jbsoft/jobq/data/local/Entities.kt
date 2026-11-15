@@ -52,16 +52,6 @@ data class MatchEntity(
 	val aiScored: Boolean,
 )
 
-/** Single row (id 0): the imported CV and what the model extracted from it. */
-@Entity(tableName = "cv")
-data class CvEntity(
-	@PrimaryKey val id: Int = 0,
-	val fileName: String,
-	val text: String,
-	val profileJson: String?,
-	val importedAt: Long,
-)
-
 /** When a source was last refreshed for a query, to avoid polling feeds more than they allow. */
 @Entity(tableName = "source_fetches")
 data class SourceFetchEntity(

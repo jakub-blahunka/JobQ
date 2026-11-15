@@ -54,18 +54,26 @@ interface JobRepository {
 	suspend fun markFetched(sourceKey: String, atMillis: Long)
 }
 
-/** A PDF's text, before analysis. */
-data class ExtractedCv(val fileName: String, val text: String)
+/** A CV file as picked by the user: the original bytes and the text read from them. */
+class ExtractedCv(val fileName: String, val pdf: ByteArray, val text: String)
 
 interface CvTextExtractor {
 	/** @throws java.io.IOException when the document cannot be read. */
 	suspend fun extract(uri: String): ExtractedCv
 }
 
+/**
+ * Holds the one CV the user has imported. Implementations keep it in app-private,
+ * encrypted storage: it is the most sensitive data the app has.
+ */
 interface CvRepository {
 	fun observe(): Flow<CvDocument?>
 	suspend fun current(): CvDocument?
-	suspend fun save(document: CvDocument)
+	/** Stores a newly imported CV, replacing any previous one and its original file. */
+	suspend fun import(document: CvDocument, pdf: ByteArray)
+	/** Updates the stored CV's details, e.g. after analysis. The original file is kept. */
+	suspend fun update(document: CvDocument)
+	/** Deletes the CV, its original file and everything derived from it. */
 	suspend fun clear()
 }
 

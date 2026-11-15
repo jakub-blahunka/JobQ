@@ -62,7 +62,7 @@
     <string name="profile_title">My CV</string>
     <string name="profile_empty_title">Import your CV</string>
     <string name="profile_empty_body">Choose a PDF. JobQ reads it on this phone and uses it to rank job listings.</string>
-    <string name="profile_privacy">Your CV stays on this phone. It is never uploaded.</string>
+    <string name="profile_privacy">Your CV stays on this phone, encrypted. It is never uploaded.</string>
     <string name="profile_import">Choose PDF</string>
     <string name="profile_replace">Replace CV</string>
     <string name="profile_reanalyze">Analyse again</string>
@@ -82,6 +82,7 @@
     <string name="cv_failed_no_text">This PDF contains no text, probably because it is a scan. Export your CV as a text PDF and try again.</string>
     <string name="cv_failed_no_model">Your CV is imported. Download an AI model to analyse it.</string>
     <string name="cv_failed_analysis">The model could not analyse this CV. Try again or use a larger model.</string>
+    <string name="cv_failed_storage">The CV could not be saved to or removed from this phone\'s storage. Free up some space and try again.</string>
     <string name="profile_go_to_models">Get a model</string>
 
     <string name="models_title">AI model</string>

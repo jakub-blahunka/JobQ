@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Backup is off: the database holds the user's CV, which must not be copied to cloud backup. -->
+    <!-- Backup is off: nothing about the user's job search or CV is copied to cloud backup. -->
     <application
         android:name=".JobQApplication"
         android:allowBackup="false"

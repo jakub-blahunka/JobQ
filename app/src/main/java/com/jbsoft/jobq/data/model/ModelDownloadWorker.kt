@@ -15,6 +15,7 @@ import androidx.work.workDataOf
 import com.jbsoft.jobq.R
 import com.jbsoft.jobq.data.settings.SettingsStore
 import com.jbsoft.jobq.domain.model.AiModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
@@ -48,7 +49,13 @@ class ModelDownloadWorker(context: Context, params: WorkerParameters) : Coroutin
 		}
 
 		// Fails when the app is in the background and notifications are off; the download still runs.
-		runCatching { setForeground(foregroundInfo(model, 0)) }
+		try {
+			setForeground(foregroundInfo(model, 0))
+		} catch (e: CancellationException) {
+			throw e
+		} catch (e: Exception) {
+			// Not fatal: only the progress notification is lost.
+		}
 
 		return try {
 			download(model, target)

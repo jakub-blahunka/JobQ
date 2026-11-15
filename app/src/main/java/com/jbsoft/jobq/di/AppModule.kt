@@ -3,7 +3,8 @@ package com.jbsoft.jobq.di
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.jbsoft.jobq.data.ai.LlamaEngine
-import com.jbsoft.jobq.data.cv.CvRepositoryImpl
+import com.jbsoft.jobq.data.cv.FileCvRepository
+import com.jbsoft.jobq.data.cv.KeystoreCipher
 import com.jbsoft.jobq.data.cv.PdfCvTextExtractor
 import com.jbsoft.jobq.data.local.JobQDatabase
 import com.jbsoft.jobq.data.local.JobRepositoryImpl
@@ -46,6 +47,7 @@ import org.koin.dsl.binds
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.io.File
 
 /** Outlives screens: searches and CV analysis keep running while the user navigates. */
 private val AppScope = named("appScope")
@@ -66,11 +68,12 @@ val appModule = module {
 	single {
 		Room.databaseBuilder<JobQDatabase>(androidContext(), "jobq.db")
 			.setDriver(BundledSQLiteDriver())
+			.addMigrations(JobQDatabase.MIGRATION_1_2)
 			.build()
 	}
 	single { SettingsStore(androidContext()) } binds arrayOf(SettingsRepository::class)
 	single<JobRepository> { JobRepositoryImpl(get<JobQDatabase>().jobDao(), get()) }
-	single<CvRepository> { CvRepositoryImpl(get<JobQDatabase>().cvDao(), get()) }
+	single<CvRepository> { FileCvRepository(File(androidContext().filesDir, "documents/cv"), KeystoreCipher("jobq_cv"), get()) }
 	single<CvTextExtractor> { PdfCvTextExtractor(androidContext()) }
 
 	// Job sources. To add one, implement JobSource and list it here.
