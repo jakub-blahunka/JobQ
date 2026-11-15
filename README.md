@@ -235,9 +235,9 @@ it takes a few minutes.
 `emulator -avd <name> -memory 6144`. With 4 GB the system kills the app while it loads
 the 3B model.
 
-**CI.** `.github/workflows/build.yml` runs the unit tests and builds a debug APK on every
-push to `main`, on pull requests and on demand. The APK is attached to the run as the
-`jobq-debug-apk` artifact.
+**CI.** `.github/workflows/build.yml` runs the unit tests and builds a debug APK. It does
+not run on its own: start it from the repository's Actions tab (Build → Run workflow).
+The APK is attached to the run as the `jobq-debug-apk` artifact.
 
 ## Testing
 
